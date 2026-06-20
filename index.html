@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kawaii Bento Studio 🍱</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #fff0f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+
+        h1 { color: #ff6b8b; margin: 10px 0 5px 0; font-size: 2.5rem; text-shadow: 2px 2px white; }
+        .instructions { color: #888; margin-bottom: 25px; font-size: 0.95rem; text-align: center; line-height: 1.4; }
+
+        .workspace {
+            display: flex;
+            gap: 35px;
+            background: white;
+            padding: 30px;
+            border-radius: 40px;
+            box-shadow: 0 20px 45px rgba(255, 107, 139, 0.15);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* --- THE KAWAII COMPARTMENT LUNCHBOX --- */
+        #bentoBox {
+            width: 520px;
+            height: 400px;
+            background-color: #ff4757; /* Outer lacquer box rim */
+            border-radius: 45px;
+            padding: 15px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px;
+            position: relative;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15), inset 0 -8px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Individual styled tray walls */
+        .compartment {
+            background-color: #fffaf0;
+            border-radius: 25px;
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.08);
+            position: relative;
+            border: 4px solid #e03746;
+        }
+
+        /* Special compartment labels just for decoration */
+        .compartment::after {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 0.75rem;
+            color: #ffb3c1;
+            font-weight: bold;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+        .main-meal { grid-row: span 2; background-color: #fffbf5; }
+        .main-meal::after { content: 'MAIN MEAL'; }
+        .veggie-zone::after { content: 'GREENS'; }
+        .fruit-zone::after { content: 'FRUIT'; }
+
+        /* --- CATEGORIZED MENU PANEL --- */
+        .menu-panel {
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Tab Buttons */
+        .tab-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f2f6;
+            padding: 5px;
+            border-radius: 15px;
+            gap: 3px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 8px 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #a4b0be;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #ff6b8b;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Grid display setup */
+        .menu-grid {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            height: 240px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .menu-grid.active {
+            display: grid;
+        }
+
+        /* Food Items Selection */
+        .menu-item {
+            font-size: 2.2rem;
+            background: #fff;
+            border: 2px dashed #ffb3c1;
+            border-radius: 18px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .menu-item:hover {
+            transform: scale(1.08) rotate(4deg);
+            background: #ffeef2;
+            border-color: #ff6b8b;
+        }
+
+        /* --- FLOATING FOOD STICKERS --- */
+        .food-sticker {
+            position: absolute;
+            font-size: 3.8rem;
+            cursor: grab;
+            touch-action: none;
+            filter: drop-shadow(3px 4px 3px rgba(0,0,0,0.12));
+            z-index: 10;
+            transform-origin: center center;
+        }
+        .food-sticker:active { cursor: grabbing; }
+
+        /* System Action Buttons */
+        .controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+            transition: all 0.2s;
+            background-color: #ff4757;
+            text-align: center;
+        }
+        .action-btn:hover { background-color: #ff6b8b; transform: translateY(-2px); }
+
+        /* Scrollbar customization for the food panel */
+        .menu-grid::-webkit-scrollbar { width: 6px; }
+        .menu-grid::-webkit-scrollbar-thumb { background-color: #ffb3c1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Kawaii Bento Studio 🍱</h1>
+    <div class="instructions">
+        ✨ Tap food tabs to change categories • Click items to spawn<br>
+        🎯 Drag anywhere across compartments • Double-click to rotate • Right-click/Long press to delete
+    </div>
+
+    <div class="workspace">
+        <div id="bentoBox">
+            <div class="compartment main-meal"></div>
+            <div class="compartment fruit-zone"></div>
+            <div class="compartment veggie-zone"></div>
+        </div>
+
+        <div class="menu-panel">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('meals')">Meals</button>
+                <button class="tab-btn" onclick="switchTab('veggies')">Greens</button>
+                <button class="tab-btn" onclick="switchTab('fruits')">Fruits</button>
+                <button class="tab-btn" onclick="switchTab('drinks')">Treats</button>
+            </div>
+
+            <div id="meals" class="menu-grid active">
+                <div class="menu-item" onclick="spawn('🍙')">🍙</div>
+                <div class="menu-item" onclick="spawn(' Sushi ')">🍣</div>
+                <div class="menu-item" onclick="spawn('🍤')">🍤</div>
+                <div class="menu-item" onclick="spawn('🍛')">🍛</div>
+                <div class="menu-item" onclick="spawn('🍜')">🍜</div>
+                <div class="menu-item" onclick="spawn('🥟')">🥟</div>
+                <div class="menu-item" onclick="spawn('🥪')">🥪</div>
+                <div class="menu-item" onclick="spawn('🍳')">🍳</div>
+                <div class="menu-item" onclick="spawn('🍗')">🍗</div>
+            </div>
+
+            <div id="veggies" class="menu-grid">
+                <div class="menu-item" onclick="spawn(' Broccoli ')">🥦</div>
+                <div class="menu-item" onclick="spawn('🥑')">🥑</div>
+                <div class="menu-item" onclick="spawn('🍅')">🍅</div>
+                <div class="menu-item" onclick="spawn('🥕')">🥕</div>
+                <div class="menu-item" onclick="spawn('🌽')">🌽</div>
+                <div class="menu-item" onclick="spawn('🥒')">🥒</div>
+                <div class="menu-item" onclick="spawn('🍄')">🍄</div>
+                <div class="menu-item" onclick="spawn('🥗')">🥗</div>
+                <div class="menu-item" onclick="spawn('🥔')">🥔</div>
+            </div>
+
+            <div id="fruits" class="menu-grid">
+                <div class="menu-item" onclick="spawn('🍓')">🍓</div>
+                <div class="menu-item" onclick="spawn('🍉')">🍉</div>
+                <div class="menu-item" onclick="spawn('🍌')">🍌</div>
+                <div class="menu-item" onclick="spawn('🍇')">🍇</div>
+                <div class="menu-item" onclick="spawn('🍒')">🍒</div>
+                <div class="menu-item" onclick="spawn('🍍')">🍍</div>
+                <div class="menu-item" onclick="spawn('🥝')">🥝</div>
+                <div class="menu-item" onclick="spawn('🍊')">🍊</div>
+                <div class="menu-item" onclick="spawn('🍎')">🍎</div>
+            </div>
+
+            <div id="drinks" class="menu-grid">
+                <div class="menu-item" onclick="spawn('🧋')">🧋</div>
+                <div class="menu-item" onclick="spawn('🧃')">🧃</div>
+                <div class="menu-item" onclick="spawn('🥛')">🥛</div>
+                <div class="menu-item" onclick="spawn('🍮')">🍮</div>
+                <div class="menu-item" onclick="spawn('🧁')">🧁</div>
+                <div class="menu-item" onclick="spawn('🍩')">🍩</div>
+                <div class="menu-item" onclick="spawn('🍪')">🍪</div>
+                <div class="menu-item" onclick="spawn('🍦')">🍦</div>
+                <div class="menu-item" onclick="spawn('🍡')">🍡</div>
+            </div>
+
+            <div class="controls">
+                <button class="action-btn" onclick="clearBox()">Eat Everything!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bentoBox = document.getElementById('bentoBox');
+        let layerTracker = 20;
+        let activeItem = null;
+        let pointerOffsetX = 0;
+        let pointerOffsetY = 0;
+
+        // Cute Synthesized Sound Engine
+        function playPopSound() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const osc = audioCtx.createOscillator();
+            const volumeNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.05);
+            osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.15);
+            
+            volumeNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            volumeNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            
+            osc.connect(volumeNode);
+            volumeNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        // Tab Navigation Switching
+        function switchTab(tabId) {
+            // Remove active status from all tabs and grids
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.menu-grid').forEach(grid => grid.classList.remove('active'));
+            
+            // Set current selected active elements
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Food Spawning and Drag Logic
+        function spawn(emoji) {
+            const sticker = document.createElement('div');
+            sticker.className = 'food-sticker';
+            sticker.innerText = emoji;
+            sticker.dataset.deg = "0";
+
+            // Spawn floating near center of box
+            sticker.style.left = '60px';
+            sticker.style.top = '120px';
+            sticker.style.zIndex = ++layerTracker;
+
+            // Pointer Tracking Setup
+            sticker.addEventListener('pointerdown', (e) => {
+                activeItem = sticker;
+                sticker.style.zIndex = ++layerTracker; // Pull item to top layer
+                
+                // Track internal click offsets inside the sticker box boundaries
+                const rect = sticker.getBoundingClientRect();
+                pointerOffsetX = e.clientX - rect.left;
+                pointerOffsetY = e.clientY - rect.top;
+                
+                sticker.setPointerCapture(e.pointerId);
+                e.stopPropagation();
+            });
+
+            sticker.addEventListener('pointermove', (e) => {
+                if (activeItem !== sticker) return;
+
+                // Get exact localized placement relative to bento coordinates
+                const bentoRect = bentoBox.getBoundingClientRect();
+                let xPos = e.clientX - bentoRect.left - pointerOffsetX;
+                let yPos = e.clientY - bentoRect.top - pointerOffsetY;
+
+                // Restrict boundaries inside the tray walls
+                const limitX = bentoBox.clientWidth - sticker.clientWidth;
+                const limitY = bentoBox.clientHeight - sticker.clientHeight;
+
+                if (xPos < 0) xPos = 0;
+                if (xPos > limitX) xPos = limitX;
+                if (yPos < 0) yPos = 0;
+                if (yPos > limitY) yPos = limitY;
+
+                sticker.style.left = xPos + 'px';
+                sticker.style.top = yPos + 'px';
+            });
+
+            sticker.addEventListener('pointerup', (e) => {
+                if (activeItem === sticker) {
+                    sticker.releasePointerCapture(e.pointerId);
+                    activeItem = null;
+                }
+            });
+
+            // Action Triggers
+            sticker.addEventListener('dblclick', (e) => {
+                let rotation = parseInt(sticker.dataset.deg) + 45;
+                sticker.dataset.deg = rotation;
+                sticker.style.transform = `rotate(${rotation}deg)`;
+                e.stopPropagation();
+            });
+
+            sticker.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                sticker.remove();
+            });
+
+            bentoBox.appendChild(sticker);
+            playPopSound();
+        }
+
+        function clearBox() {
+            // Clears stickers while leaving structural compartments intact
+            document.querySelectorAll('.food-sticker').forEach(item => item.remove());
+            layerTracker = 20;
+        }
+    </script>
+</body>
+</html>
