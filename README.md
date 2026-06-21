@@ -1,4 +1,4 @@
-# 🍱 Kawaii Bento Studio
+# 🍱 Bento Builder
 
 An interactive, super-cute virtual lunchbox builder built to practice intermediate frontend engineering concepts. Drag, drop, rotate, and pack the perfect custom lunch!
 
