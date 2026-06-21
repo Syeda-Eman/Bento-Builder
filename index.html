@@ -259,7 +259,6 @@
         let offsetX = 0;
         let offsetY = 0;
 
-        // Plays the cute plop sound
         function sound() {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
@@ -281,7 +280,7 @@
             osc.stop(ctx.currentTime + 0.15);
         }
 
-        // Swaps the active menu category tab
+
         function tab(id) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.menu-grid').forEach(g => g.classList.remove('active'));
@@ -290,7 +289,6 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // Spawns a food item and sets up drag tracking
         function drop(emoji) {
             const sticker = document.createElement('div');
             sticker.className = 'food-sticker';
@@ -301,7 +299,7 @@
             sticker.style.top = '120px';
             sticker.style.zIndex = ++layer;
 
-            // Start dragging
+
             sticker.addEventListener('pointerdown', (e) => {
                 item = sticker;
                 sticker.style.zIndex = ++layer;
@@ -314,7 +312,7 @@
                 e.stopPropagation();
             });
 
-            // Move the item
+
             sticker.addEventListener('pointermove', (e) => {
                 if (item !== sticker) return;
 
@@ -334,7 +332,6 @@
                 sticker.style.top = y + 'px';
             });
 
-            // Stop dragging
             sticker.addEventListener('pointerup', (e) => {
                 if (item === sticker) {
                     sticker.releasePointerCapture(e.pointerId);
@@ -342,7 +339,7 @@
                 }
             });
 
-            // Double click to spin
+
             sticker.addEventListener('dblclick', (e) => {
                 let deg = parseInt(sticker.dataset.deg) + 45;
                 sticker.dataset.deg = deg;
@@ -350,7 +347,7 @@
                 e.stopPropagation();
             });
 
-            // Right click / long press to delete
+
             sticker.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 sticker.remove();
@@ -360,7 +357,6 @@
             sound();
         }
 
-        // Clears out the bento layout completely
         function reset() {
             document.querySelectorAll('.food-sticker').forEach(s => s.remove());
             layer = 20;
